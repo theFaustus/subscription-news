@@ -10,4 +10,5 @@ import java.time.LocalDate;
 public class News {
     private LocalDate date;
     private String content;
+    private NewsType type;
 }

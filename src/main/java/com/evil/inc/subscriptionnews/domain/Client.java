@@ -2,6 +2,7 @@ package com.evil.inc.subscriptionnews.domain;
 
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
