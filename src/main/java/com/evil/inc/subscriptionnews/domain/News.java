@@ -9,6 +9,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class News {
     private LocalDate date;
+    private String author;
+    private String title;
     private String content;
+    private String source;
     private NewsType type;
 }

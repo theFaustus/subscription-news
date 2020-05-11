@@ -1,4 +1,4 @@
-package com.evil.inc.subscriptionnews.service;
+package com.evil.inc.subscriptionnews.service.contracts;
 
 import com.evil.inc.subscriptionnews.domain.Client;
 import com.evil.inc.subscriptionnews.domain.News;

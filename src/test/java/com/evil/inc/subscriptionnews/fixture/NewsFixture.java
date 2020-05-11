@@ -12,20 +12,22 @@ import java.time.LocalDate;
 @Builder
 public class NewsFixture {
     private LocalDate date;
+    private String author;
+    private String title;
     private String content;
+    private String source;
     private NewsType type;
 
 
-
-    public static NewsFixture fullNews(){
+    public static NewsFixture fullNews() {
         return NewsFixture.builder().content("Full").date(LocalDate.parse("1970-01-01")).type(NewsType.FULL).build();
     }
 
-    public static NewsFixture headerOnlyNews(){
+    public static NewsFixture headerOnlyNews() {
         return NewsFixture.builder().content("Headers").date(LocalDate.parse("1970-01-01")).type(NewsType.HEADERS_ONLY).build();
     }
 
-    public News get(){
-        return new News(date, content, type);
+    public News get() {
+        return new News(date, author, title, content, source, type);
     }
 }

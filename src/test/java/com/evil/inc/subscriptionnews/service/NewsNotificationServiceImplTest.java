@@ -1,23 +1,32 @@
 package com.evil.inc.subscriptionnews.service;
 
-import com.evil.inc.subscriptionnews.domain.Client;
 import com.evil.inc.subscriptionnews.domain.News;
 import com.evil.inc.subscriptionnews.domain.NewsType;
 import com.evil.inc.subscriptionnews.exceptions.NewsProviderConnectionTimedOutException;
-import com.evil.inc.subscriptionnews.fixture.NewsFixture;
+import com.evil.inc.subscriptionnews.service.contracts.NewsGenerationService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static com.evil.inc.subscriptionnews.domain.NewsType.FULL;
-import static com.evil.inc.subscriptionnews.domain.NewsType.HEADERS_ONLY;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
+@ExtendWith(MockitoExtension.class)
 class NewsNotificationServiceImplTest {
 
+    @Mock
+    private NewsGenerationService newsGenerationService;
+
+    @InjectMocks
     private NewsNotificationServiceImpl newsNotificationService;
 
     @BeforeEach
@@ -27,22 +36,29 @@ class NewsNotificationServiceImplTest {
 
     class FakeNewsGenerationService implements NewsGenerationService {
         @Override
-        public News generateNewsFor(LocalDate localDate) {
-            return new News(localDate, "Fake news", FULL);
+        public List<News> generateHeadersOnlyNewsFor(LocalDate localDate) {
+            return Collections.singletonList(new News(localDate, "unknown", "unknown", "Fake news", "admin", NewsType.HEADERS_ONLY));
         }
     }
 
 
     class NewsGenerationServiceMock implements NewsGenerationService {
         private Map<LocalDate, Integer> localDateInvocationsMap = new HashMap<>();
+        private int expectedNumberOfInvocations;
+        private LocalDate expectedDate;
+
+        public NewsGenerationServiceMock(int expectedNumberOfInvocations, LocalDate expectedDate) {
+            this.expectedNumberOfInvocations = expectedNumberOfInvocations;
+            this.expectedDate = expectedDate;
+        }
 
         @Override
-        public News generateNewsFor(LocalDate localDate) {
+        public List<News> generateHeadersOnlyNewsFor(LocalDate localDate) {
             localDateInvocationsMap.merge(localDate, 1, Integer::sum);
             return null;
         }
 
-        public void verify(int expectedNumberOfInvocations, LocalDate expectedDate) {
+        public void assertIsSatisfied() {
             assertThat(localDateInvocationsMap.containsKey(expectedDate)).isTrue();
             assertThat(localDateInvocationsMap.get(expectedDate)).isEqualTo(expectedNumberOfInvocations);
         }
@@ -52,7 +68,7 @@ class NewsNotificationServiceImplTest {
         private int numberOfInvocations = 0;
 
         @Override
-        public News generateNewsFor(LocalDate localDate) {
+        public List<News> generateHeadersOnlyNewsFor(LocalDate localDate) {
             numberOfInvocations++;
             return null;
         }
@@ -63,14 +79,14 @@ class NewsNotificationServiceImplTest {
 
     class NewsGenerationServiceSaboteurStub implements NewsGenerationService {
         @Override
-        public News generateNewsFor(LocalDate localDate) {
+        public List<News> generateHeadersOnlyNewsFor(LocalDate localDate) {
             throw new NewsProviderConnectionTimedOutException();
         }
     }
 
     class DummyNewsGenerationService implements NewsGenerationService {
         @Override
-        public News generateNewsFor(LocalDate localDate) {
+        public List<News> generateHeadersOnlyNewsFor(LocalDate localDate) {
             return null;
         }
     }

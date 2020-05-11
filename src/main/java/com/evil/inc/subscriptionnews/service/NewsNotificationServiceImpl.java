@@ -4,18 +4,23 @@ import com.evil.inc.subscriptionnews.domain.Client;
 import com.evil.inc.subscriptionnews.domain.News;
 import com.evil.inc.subscriptionnews.domain.NewsType;
 import com.evil.inc.subscriptionnews.exceptions.NewsProviderConnectionTimedOutException;
+import com.evil.inc.subscriptionnews.service.contracts.NewsGenerationService;
+import com.evil.inc.subscriptionnews.service.contracts.NewsNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class NewsNotificationServiceImpl implements NewsNotificationService {
+class NewsNotificationServiceImpl implements NewsNotificationService {
     private Set<Client> clients = new HashSet<>();
 
     private final NewsGenerationService newsGenerationService;
@@ -27,11 +32,11 @@ public class NewsNotificationServiceImpl implements NewsNotificationService {
 
     @Override
     public void sendNewsFor(LocalDate localDate) {
-        News news;
+        List<News> news;
         try {
-            news = newsGenerationService.generateNewsFor(localDate);
+            news = newsGenerationService.generateHeadersOnlyNewsFor(localDate);
         } catch (NewsProviderConnectionTimedOutException ex) {
-            news = new News(localDate, "Oops.", NewsType.HEADERS_ONLY);
+            news = Collections.singletonList(new News(localDate, "unknown", "unknown", "Oops.", "admin", NewsType.HEADERS_ONLY));
             log.debug("Oops, something happened", ex);
         }
         for (Client c : clients) {
