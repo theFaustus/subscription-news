@@ -46,7 +46,7 @@ class NewsNotificationServiceImpl implements NewsNotificationService {
 
     @Override
     public void removeSubscriber(Client client) {
-        this.clients.remove(client);
+        this.clients.removeIf(c -> c.getId().equals(client.getId()));
     }
 
 }

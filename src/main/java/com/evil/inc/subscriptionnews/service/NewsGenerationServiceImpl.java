@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -27,24 +28,23 @@ class NewsGenerationServiceImpl implements NewsGenerationService {
 
 
     @Override
+    @SneakyThrows
     public List<News> generateHeadersOnlyNewsFor(LocalDate localDate) throws NewsProviderConnectionTimedOutException {
         ResponseEntity<String> response = restTemplate.getForEntity(NEWS_API + "/top-headlines/?category=general&pageSize=5&from=" + localDate + "&to=" + localDate + "&apiKey=" + API_KEY, String.class);
-        List<News> news = new ArrayList<>();
-        try {
-            JsonNode articlesNode = new ObjectMapper().readTree(response.getBody()).path("articles");
-            for (JsonNode article : articlesNode) {
-                news.add(new News(localDate,
-                        article.path("author").asText(),
-                        article.path("title").asText(),
-                        article.path("content").asText(),
-                        article.path("source").path("name").asText(),
-                        NewsType.HEADERS_ONLY
-                ));
-            }
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        return  createNews(localDate, response);
+    }
 
+    private List<News> createNews(LocalDate localDate, ResponseEntity<String> response) throws JsonProcessingException {
+        List<News> news = new ArrayList<>();
+        JsonNode articlesNode = new ObjectMapper().readTree(response.getBody()).path("articles");
+        for (JsonNode article : articlesNode) {
+            news.add(new News(localDate,
+                    article.path("author").asText(),
+                    article.path("title").asText(),
+                    article.path("content").asText(),
+                    article.path("source").path("name").asText(),
+                    NewsType.HEADERS_ONLY));
+        }
         return news;
     }
 
