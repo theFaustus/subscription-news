@@ -17,6 +17,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+//powered by NewsAPI.org
+
 @Service
 @RequiredArgsConstructor
 public
@@ -30,7 +32,7 @@ class NewsGenerationServiceImpl implements NewsGenerationService {
     @Override
     @SneakyThrows
     public List<News> generateHeadersOnlyNewsFor(LocalDate localDate) throws NewsProviderConnectionTimedOutException {
-        ResponseEntity<String> response = restTemplate.getForEntity(NEWS_API + "/top-headlines/?category=general&pageSize=5&from=" + localDate + "&to=" + localDate + "&apiKey=" + API_KEY, String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(NEWS_API + "/top-headlines/?category=general&country=us&pageSize=5&from=" + localDate + "&to=" + localDate + "&apiKey=" + API_KEY, String.class);
         return  createNews(localDate, response);
     }
 
