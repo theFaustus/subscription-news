@@ -32,9 +32,29 @@ class NewsNotificationServiceImpl implements NewsNotificationService {
 
     @Override
     public void sendNewsFor(LocalDate localDate) {
+        if(localDate == null){
+            throw new IllegalArgumentException("Date must not be null");
+        }
         List<News> news;
         try {
             news = newsGenerationService.generateHeadersOnlyNewsFor(localDate);
+        } catch (NewsProviderConnectionTimedOutException ex) {
+            news = Collections.singletonList(new News(localDate, "unknown", "unknown", "Oops.", "admin", NewsType.HEADERS_ONLY));
+            log.debug("Oops, something happened", ex);
+        }
+        for (Client c : clients) {
+            c.receive(news);
+        }
+    }
+
+    @Override
+    public void sendNewsForYesterday(LocalDate localDate) {
+        if(localDate == null){
+            throw new IllegalArgumentException("Date must not be null");
+        }
+        List<News> news;
+        try {
+            news = newsGenerationService.generateHeadersOnlyNewsFor(localDate.minusDays(1));
         } catch (NewsProviderConnectionTimedOutException ex) {
             news = Collections.singletonList(new News(localDate, "unknown", "unknown", "Oops.", "admin", NewsType.HEADERS_ONLY));
             log.debug("Oops, something happened", ex);

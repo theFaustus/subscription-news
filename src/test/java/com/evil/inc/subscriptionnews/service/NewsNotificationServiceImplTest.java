@@ -23,12 +23,6 @@ import static org.mockito.Mockito.mock;
 @ExtendWith(MockitoExtension.class)
 class NewsNotificationServiceImplTest {
 
-    @Mock
-    private NewsGenerationService newsGenerationService;
-
-    @InjectMocks
-    private NewsNotificationServiceImpl newsNotificationService;
-
     @BeforeEach
     void setUp() {
         //Fixture setup
