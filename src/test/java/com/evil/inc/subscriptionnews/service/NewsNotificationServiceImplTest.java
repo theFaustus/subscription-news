@@ -1,15 +1,25 @@
 package com.evil.inc.subscriptionnews.service;
 
+import com.evil.inc.subscriptionnews.domain.Client;
 import com.evil.inc.subscriptionnews.domain.News;
 import com.evil.inc.subscriptionnews.domain.NewsType;
 import com.evil.inc.subscriptionnews.exceptions.NewsProviderConnectionTimedOutException;
 import com.evil.inc.subscriptionnews.service.contracts.NewsGenerationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.awt.print.Book;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,9 +39,14 @@ class NewsNotificationServiceImplTest {
     }
 
     class FakeNewsGenerationService implements NewsGenerationService {
+        public static final String NEWS_PATH = "src/test/java/com/evil/inc/subscriptionnews/service/news.json";
+
         @Override
+        @SneakyThrows
         public List<News> generateHeadersOnlyNewsFor(LocalDate localDate) {
-            return Collections.singletonList(new News(localDate, "unknown", "unknown", "Fake news", "admin", NewsType.HEADERS_ONLY));
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            return Arrays.asList(mapper.readValue(Paths.get(NEWS_PATH).toFile(), News[].class));
         }
     }
 
