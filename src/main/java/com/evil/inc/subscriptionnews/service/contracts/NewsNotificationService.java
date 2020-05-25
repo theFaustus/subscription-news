@@ -11,7 +11,7 @@ public interface NewsNotificationService {
 
     void sendNewsFor(LocalDate localDate);
 
-    void sendNewsForYesterday(LocalDate localDate);
+    void sendNewsForDayBefore(LocalDate localDate);
 
     void removeSubscriber(Client client);
 }

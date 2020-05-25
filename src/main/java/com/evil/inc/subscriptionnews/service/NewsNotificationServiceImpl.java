@@ -11,17 +11,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 class NewsNotificationServiceImpl implements NewsNotificationService {
-    private Set<Client> clients = new HashSet<>();
+    private Set<Client> clients = new CopyOnWriteArraySet<>();
+    private List<News> news = new CopyOnWriteArrayList<>();
 
     private final NewsGenerationService newsGenerationService;
 
@@ -35,7 +39,6 @@ class NewsNotificationServiceImpl implements NewsNotificationService {
         if(localDate == null){
             throw new IllegalArgumentException("Date must not be null");
         }
-        List<News> news;
         try {
             news = newsGenerationService.generateHeadersOnlyNewsFor(localDate);
         } catch (NewsProviderConnectionTimedOutException ex) {
@@ -48,11 +51,10 @@ class NewsNotificationServiceImpl implements NewsNotificationService {
     }
 
     @Override
-    public void sendNewsForYesterday(LocalDate localDate) {
+    public void sendNewsForDayBefore(LocalDate localDate) {
         if(localDate == null){
             throw new IllegalArgumentException("Date must not be null");
         }
-        List<News> news;
         try {
             news = newsGenerationService.generateHeadersOnlyNewsFor(localDate.minusDays(1));
         } catch (NewsProviderConnectionTimedOutException ex) {
@@ -69,4 +71,11 @@ class NewsNotificationServiceImpl implements NewsNotificationService {
         this.clients.removeIf(c -> c.getId().equals(client.getId()));
     }
 
+    Set<Client> getClients() {
+        return clients;
+    }
+
+    List<News> getNews() {
+        return news;
+    }
 }
