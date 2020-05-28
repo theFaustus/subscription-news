@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -27,27 +28,33 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(MockitoExtension.class) //JUNIT 5
+    //@RunWith(MockitoJunitRunner.class) // JUNIT < 5
 class NewsNotificationServiceImplTest {
 
     @Mock
     private NewsGenerationService newsGenerationService;
 
+    @InjectMocks
     private NewsNotificationServiceImpl newsNotificationService;
+
     private Client secondClient;
     private Client firstClient;
     private LocalDate date;
 
     @BeforeEach
     void setUp() {
+        //SUT
         newsNotificationService = new NewsNotificationServiceImpl(newsGenerationService);
         //Fixture setup
         secondClient = new Client(UUID.randomUUID().toString(), "aba2@gmail.com");
         firstClient = new Client(UUID.randomUUID().toString(), "aba@gmail.com");
         date = LocalDate.parse("2019-01-01");
+
     }
 
     @Test
@@ -80,12 +87,13 @@ class NewsNotificationServiceImplTest {
     void sendNewsFor_withValidDate_sendsNews() {
         newsNotificationService.addSubscriber(firstClient);
         newsNotificationService.addSubscriber(secondClient);
+
         when(newsGenerationService.generateHeadersOnlyNewsFor(date))
                 .thenReturn(Collections.singletonList(NewsFixture.headerOnlyNews().get()));
 
         newsNotificationService.sendNewsFor(date);
 
-        verify(newsGenerationService).generateHeadersOnlyNewsFor(date);
+        verify(newsGenerationService, times(1)).generateHeadersOnlyNewsFor(date);
         assertThat(newsNotificationService.getNews())
                 .isEqualTo(Collections.singletonList(NewsFixture.headerOnlyNews().get()));
 
@@ -95,6 +103,7 @@ class NewsNotificationServiceImplTest {
     void sendNewsFor_withValidDateAndThrowingNewsProviderException_sendsErrorNews() {
         newsNotificationService.addSubscriber(firstClient);
         newsNotificationService.addSubscriber(secondClient);
+
         when(newsGenerationService.generateHeadersOnlyNewsFor(date))
                 .thenThrow(new NewsProviderConnectionTimedOutException());
 
@@ -116,6 +125,7 @@ class NewsNotificationServiceImplTest {
     void sendNewsForDayBefore_withValidDate_sendsNews() {
         newsNotificationService.addSubscriber(firstClient);
         newsNotificationService.addSubscriber(secondClient);
+
         when(newsGenerationService.generateHeadersOnlyNewsFor(date.minusDays(1)))
                 .thenReturn(Collections.singletonList(NewsFixture.headerOnlyNews().get()));
 

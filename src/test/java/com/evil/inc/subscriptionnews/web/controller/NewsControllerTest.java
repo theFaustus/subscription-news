@@ -8,6 +8,7 @@ import com.evil.inc.subscriptionnews.service.contracts.NewsNotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
@@ -37,10 +38,13 @@ class NewsControllerTest {
 
     private MockMvc mockMvc;
 
+    @InjectMocks
+    private NewsController controller;
+
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new NewsController(newsNotificationService, newsGenerationService))
+                .standaloneSetup(controller)
                 .build();
     }
 
@@ -83,6 +87,7 @@ class NewsControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+               // don`t do that - or i`ll find you! .andExpect(content().json("[{\"date\":\"2019-01-01\",\"author\":\"Nobody\",\"title\":null,\"content\":\"Hoba\",\"source\":null,\"type\":\"HEADERS_ONLY\"}]"))
                 .andExpect(jsonPath("$[0].date").value(news.getDate().toString()))
                 .andExpect(jsonPath("$[0].author").value(news.getAuthor()))
                 .andExpect(jsonPath("$[0].title").value(news.getTitle()))

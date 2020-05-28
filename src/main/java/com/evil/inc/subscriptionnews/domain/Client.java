@@ -21,4 +21,8 @@ public class Client {
         System.out.println(this.toString());
         news.forEach(System.out::println);
     }
+
+    void setId(String id) {
+        this.id = id;
+    }
 }

@@ -21,8 +21,8 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/news")
-public class NewsController {
+@RequestMapping("/news") //   /news/subscribe
+public class NewsController { // SUT
     private final NewsNotificationService newsNotificationService;
     private final NewsGenerationService newsGenerationService;
 
