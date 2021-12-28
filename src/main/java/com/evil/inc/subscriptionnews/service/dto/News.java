@@ -1,4 +1,4 @@
-package com.evil.inc.subscriptionnews.domain;
+package com.evil.inc.subscriptionnews.service.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

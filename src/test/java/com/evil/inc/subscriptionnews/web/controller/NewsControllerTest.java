@@ -1,7 +1,7 @@
 package com.evil.inc.subscriptionnews.web.controller;
 
-import com.evil.inc.subscriptionnews.domain.News;
-import com.evil.inc.subscriptionnews.domain.NewsType;
+import com.evil.inc.subscriptionnews.service.dto.News;
+import com.evil.inc.subscriptionnews.service.dto.NewsType;
 import com.evil.inc.subscriptionnews.fixture.NewsFixture;
 import com.evil.inc.subscriptionnews.service.contracts.NewsGenerationService;
 import com.evil.inc.subscriptionnews.service.contracts.NewsNotificationService;
@@ -79,7 +79,7 @@ class NewsControllerTest {
                 .author("Nobody")
                 .type(NewsType.HEADERS_ONLY)
                 .build()
-                .get();
+                .build();
         when(newsGenerationService.generateHeadersOnlyNewsFor(date))
                 .thenReturn(Collections.singletonList(news));
 

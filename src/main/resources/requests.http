@@ -1,0 +1,15 @@
+###
+POST http://localhost:8080/news/subscribe
+
+john@gmail.com
+
+###
+DELETE http://localhost:8080/news/unsubscribe/54085973-bd07-4745-b075-4b2fd622c5f8
+
+###
+GET http://localhost:8080/news/2021-12-12
+Content-Type: application/json
+
+###
+POST http://localhost:8080/news/send/2021-12-12
+Content-Type: application/json

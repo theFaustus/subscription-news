@@ -1,7 +1,7 @@
 package com.evil.inc.subscriptionnews.service;
 
-import com.evil.inc.subscriptionnews.domain.News;
-import com.evil.inc.subscriptionnews.domain.NewsType;
+import com.evil.inc.subscriptionnews.service.dto.News;
+import com.evil.inc.subscriptionnews.service.dto.NewsType;
 import com.evil.inc.subscriptionnews.exceptions.NewsProviderConnectionTimedOutException;
 import com.evil.inc.subscriptionnews.service.contracts.NewsGenerationService;
 import com.fasterxml.jackson.core.JsonProcessingException;

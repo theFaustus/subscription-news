@@ -1,8 +1,9 @@
 package com.evil.inc.subscriptionnews.service;
 
 import com.evil.inc.subscriptionnews.domain.Client;
-import com.evil.inc.subscriptionnews.domain.News;
-import com.evil.inc.subscriptionnews.domain.NewsType;
+import com.evil.inc.subscriptionnews.repository.ClientRepository;
+import com.evil.inc.subscriptionnews.service.dto.News;
+import com.evil.inc.subscriptionnews.service.dto.NewsType;
 import com.evil.inc.subscriptionnews.exceptions.NewsProviderConnectionTimedOutException;
 import com.evil.inc.subscriptionnews.fixture.NewsFixture;
 import com.evil.inc.subscriptionnews.service.contracts.NewsGenerationService;
@@ -13,7 +14,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -24,56 +24,58 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class) //JUNIT 5
-    //@RunWith(MockitoJunitRunner.class) // JUNIT < 5
+        //@RunWith(MockitoJunitRunner.class) // JUNIT < 5
 class NewsNotificationServiceImplTest {
 
     @Mock
     private NewsGenerationService newsGenerationService;
+    @Mock
+    private ClientRepository clientRepository;
 
-    @InjectMocks
     private NewsNotificationServiceImpl newsNotificationService;
 
-    private Client secondClient;
-    private Client firstClient;
     private LocalDate date;
+    private String clientEmail;
+    private Client client;
 
     @BeforeEach
     void setUp() {
         //SUT
-        newsNotificationService = new NewsNotificationServiceImpl(newsGenerationService);
+        newsNotificationService = new NewsNotificationServiceImpl(newsGenerationService, clientRepository);
         //Fixture setup
-        secondClient = new Client(UUID.randomUUID().toString(), "aba2@gmail.com");
-        firstClient = new Client(UUID.randomUUID().toString(), "aba@gmail.com");
+        clientEmail = "aba@gmail.com";
+        client = Client.builder().id("123-456-789").email(clientEmail).build();
         date = LocalDate.parse("2019-01-01");
 
     }
 
     @Test
-    void addSubscriber_whenInvoked_increasesNumberOfClients() {
-        newsNotificationService.addSubscriber(firstClient);
+    void addSubscriber_whenInvoked_returnsClientId() {
+        when(clientRepository.save(any(Client.class))).thenReturn(client);
 
-        assertThat(newsNotificationService.getClients()).hasSize(1);
-        assertThat(newsNotificationService.getClients()).contains(firstClient);
+        final String id = newsNotificationService.addSubscriber(clientEmail);
+
+        assertThat(id).isEqualTo(client.getId());
     }
 
     @Test
-    void removeSubscriber_whenInvoked_decreasesNumberOfClients() {
+    void removeSubscriber_whenInvoked_deletesClient() {
+        when(clientRepository.save(any(Client.class))).thenReturn(client);
+        final String firstClientId = newsNotificationService.addSubscriber(clientEmail);
 
-        newsNotificationService.addSubscriber(firstClient);
-        newsNotificationService.addSubscriber(secondClient);
-        newsNotificationService.removeSubscriber(firstClient);
+        newsNotificationService.removeSubscriber(firstClientId);
 
-        assertThat(newsNotificationService.getClients()).hasSize(1);
-        assertThat(newsNotificationService.getClients()).containsOnly(secondClient);
+        verify(clientRepository).deleteById(firstClientId);
     }
 
     @Test
@@ -85,25 +87,23 @@ class NewsNotificationServiceImplTest {
 
     @Test
     void sendNewsFor_withValidDate_sendsNews() {
-        newsNotificationService.addSubscriber(firstClient);
-        newsNotificationService.addSubscriber(secondClient);
-
+        when(clientRepository.save(any(Client.class))).thenReturn(client);
+        newsNotificationService.addSubscriber(clientEmail);
         when(newsGenerationService.generateHeadersOnlyNewsFor(date))
-                .thenReturn(Collections.singletonList(NewsFixture.headerOnlyNews().get()));
+                .thenReturn(Collections.singletonList(NewsFixture.headerOnlyNews().build()));
 
         newsNotificationService.sendNewsFor(date);
 
         verify(newsGenerationService, times(1)).generateHeadersOnlyNewsFor(date);
         assertThat(newsNotificationService.getNews())
-                .isEqualTo(Collections.singletonList(NewsFixture.headerOnlyNews().get()));
+                .isEqualTo(Collections.singletonList(NewsFixture.headerOnlyNews().build()));
 
     }
 
     @Test
     void sendNewsFor_withValidDateAndThrowingNewsProviderException_sendsErrorNews() {
-        newsNotificationService.addSubscriber(firstClient);
-        newsNotificationService.addSubscriber(secondClient);
-
+        when(clientRepository.save(any(Client.class))).thenReturn(client);
+        newsNotificationService.addSubscriber(clientEmail);
         when(newsGenerationService.generateHeadersOnlyNewsFor(date))
                 .thenThrow(new NewsProviderConnectionTimedOutException());
 
@@ -111,7 +111,8 @@ class NewsNotificationServiceImplTest {
 
         verify(newsGenerationService).generateHeadersOnlyNewsFor(date);
         assertThat(newsNotificationService.getNews())
-                .isEqualTo(Collections.singletonList(new News(date, "unknown", "unknown", "Oops.", "admin", NewsType.HEADERS_ONLY)));
+                .isEqualTo(Collections.singletonList(
+                        new News(date, "unknown", "unknown", "Oops.", "admin", NewsType.HEADERS_ONLY)));
     }
 
     @Test
@@ -123,11 +124,10 @@ class NewsNotificationServiceImplTest {
 
     @Test
     void sendNewsForDayBefore_withValidDate_sendsNews() {
-        newsNotificationService.addSubscriber(firstClient);
-        newsNotificationService.addSubscriber(secondClient);
-
+        when(clientRepository.save(any(Client.class))).thenReturn(client);
+        newsNotificationService.addSubscriber(clientEmail);
         when(newsGenerationService.generateHeadersOnlyNewsFor(date.minusDays(1)))
-                .thenReturn(Collections.singletonList(NewsFixture.headerOnlyNews().get()));
+                .thenReturn(Collections.singletonList(NewsFixture.headerOnlyNews().build()));
 
         newsNotificationService.sendNewsForDayBefore(date);
 
@@ -135,14 +135,14 @@ class NewsNotificationServiceImplTest {
         verify(newsGenerationService).generateHeadersOnlyNewsFor(localDateArgumentCaptor.capture());
         assertThat(localDateArgumentCaptor.getValue()).isEqualTo(date.minusDays(1));
         assertThat(newsNotificationService.getNews())
-                .isEqualTo(Collections.singletonList(NewsFixture.headerOnlyNews().get()));
+                .isEqualTo(Collections.singletonList(NewsFixture.headerOnlyNews().build()));
 
     }
 
     @Test
     void sendNewsForDayBefore_withValidDateAndThrowingNewsProviderException_sendsErrorNews() {
-        newsNotificationService.addSubscriber(firstClient);
-        newsNotificationService.addSubscriber(secondClient);
+        when(clientRepository.save(any(Client.class))).thenReturn(client);
+        newsNotificationService.addSubscriber(clientEmail);
         when(newsGenerationService.generateHeadersOnlyNewsFor(date.minusDays(1)))
                 .thenThrow(new NewsProviderConnectionTimedOutException());
 
@@ -152,7 +152,8 @@ class NewsNotificationServiceImplTest {
         verify(newsGenerationService).generateHeadersOnlyNewsFor(localDateArgumentCaptor.capture());
         assertThat(localDateArgumentCaptor.getValue()).isEqualTo(date.minusDays(1));
         assertThat(newsNotificationService.getNews())
-                .isEqualTo(Collections.singletonList(new News(date, "unknown", "unknown", "Oops.", "admin", NewsType.HEADERS_ONLY)));
+                .isEqualTo(Collections.singletonList(
+                        new News(date, "unknown", "unknown", "Oops.", "admin", NewsType.HEADERS_ONLY)));
     }
 
 

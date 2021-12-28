@@ -1,8 +1,7 @@
 package com.evil.inc.subscriptionnews.fixture;
 
-import com.evil.inc.subscriptionnews.domain.News;
-import com.evil.inc.subscriptionnews.domain.NewsType;
-import lombok.AllArgsConstructor;
+import com.evil.inc.subscriptionnews.service.dto.News;
+import com.evil.inc.subscriptionnews.service.dto.NewsType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -27,7 +26,7 @@ public class NewsFixture {
         return NewsFixture.builder().content("Headers").date(LocalDate.parse("1970-01-01")).type(NewsType.HEADERS_ONLY).build();
     }
 
-    public News get() {
+    public News build() {
         return new News(date, author, title, content, source, type);
     }
 }
